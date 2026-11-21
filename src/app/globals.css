@@ -1,0 +1,119 @@
+@tailwind base; @tailwind components; @tailwind utilities;
+/* ---- Theme (Superpi brand book): every colour that must change between light and dark is a variable here ------------- */
+/* Deep Ink #14162F · Indigo #4335CF · Soft Lavender #E8E5FF · Paper #F8F8FD */
+:root { --ink: 20 22 47; --surface: 255 255 255; --edge: 255 255 255; --panel: 248 248 253; --brand-text: 67 53 207; --danger-text: 194 65 12; color-scheme: light; }
+.dark { --ink: 232 230 255; --surface: 32 33 66; --edge: 64 62 112; --panel: 14 15 34; --brand-text: 172 164 255; --danger-text: 253 186 116; color-scheme: dark; }
+@layer base {
+  body { @apply min-h-screen text-ink antialiased;
+    background: radial-gradient(60rem 40rem at 8% -10%, #E8E5FF 0%, transparent 60%), radial-gradient(50rem 40rem at 100% 0%, #DCD7FF 0%, transparent 55%),
+      radial-gradient(55rem 40rem at 70% 110%, #EDEBFF 0%, transparent 55%), radial-gradient(40rem 30rem at 0% 100%, #E4E9FF 0%, transparent 60%), #F8F8FD;
+    background-attachment: fixed; }
+  .dark body { background: radial-gradient(60rem 40rem at 8% -10%, rgba(67,53,207,.30) 0%, transparent 60%), radial-gradient(50rem 40rem at 100% 0%, rgba(100,87,232,.16) 0%, transparent 55%),
+      radial-gradient(55rem 40rem at 70% 110%, rgba(164,155,255,.10) 0%, transparent 55%), radial-gradient(40rem 30rem at 0% 100%, rgba(67,53,207,.16) 0%, transparent 60%), #0C0D22;
+    background-attachment: fixed; }
+  /* Form controls never inherit the page's text colour by themselves: without this, typed text was black on a dark card */
+  html, body { overflow-x: clip; } /* nothing may push the page sideways on a phone */
+  img, svg, video { max-width: 100%; }
+  input, select, textarea { color: rgb(var(--ink)); }
+  input::placeholder, textarea::placeholder { color: rgb(var(--ink) / .5); opacity: 1; }
+  select option, select optgroup { background-color: rgb(var(--panel)); color: rgb(var(--ink)); }
+  a { color: inherit; }
+  /* A field directly inside its label gets a small gap below the label text (fields without a label, e.g. search bars, stay aligned with their buttons) */
+  label > input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), label > select, label > textarea, label > .field-wrap { margin-top: .25rem; }
+  h1, h2, h3 { letter-spacing: -0.015em; }
+}
+@layer components {
+  .glass { @apply rounded-2xl border border-edge/60 bg-surface/55 backdrop-blur-2xl; box-shadow: 0 8px 32px rgba(20,22,47,.07), inset 0 1px 0 rgba(255,255,255,.85); }
+  .dark .glass { box-shadow: 0 8px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06); }
+  .glass-dark { @apply rounded-2xl border border-white/10 bg-navy/90 text-white backdrop-blur-2xl; box-shadow: 0 14px 44px rgba(20,22,47,.30), inset 0 1px 0 rgba(255,255,255,.10); }
+  .dark .glass-dark { background: rgba(16,17,40,.92); border-color: rgba(255,255,255,.10); }
+  /* "Soon" chip for features that are on the way: a soft lavender glow */
+  .soon { @apply inline-flex items-center rounded-full bg-brandLight/25 px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-lavender animate-glow; }
+  .soon-light { @apply inline-flex items-center rounded-full bg-lavender px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-brand animate-glow; }
+}
+/* Text colours that are too dim on a dark card get a lighter shade in dark mode (the same colours, just readable) */
+.dark .text-brand, .dark .hover\:text-brand:hover { color: rgb(var(--brand-text)); }
+.dark .text-danger { color: rgb(var(--danger-text)); }
+.dark .bg-brand\/10, .dark .bg-brand\/15 { background-color: rgba(164,155,255,.14); }
+.dark .border-brand\/40 { border-color: rgba(164,155,255,.45); }
+.dark .bg-danger\/10 { background-color: rgba(251,146,60,.12); }
+.dark .border-danger\/30 { border-color: rgba(251,146,60,.35); }
+.dark .bg-turmeric\/15 { background-color: rgba(242,169,59,.14); }
+.dark .border-turmeric\/60 { border-color: rgba(242,169,59,.5); }
+/* Dim helper text, table heads and labels stay readable on dark cards */
+.dark .text-ink\/70, .dark .text-ink\/65, .dark .text-ink\/60 { color: rgb(var(--ink) / .88); }
+.dark .text-ink\/50 { color: rgb(var(--ink) / .7); }
+.dark .glass { background-color: rgb(var(--surface) / .7); border-color: rgb(var(--edge) / .75); }
+.dark .hover\:bg-surface\/60:hover { background-color: rgb(var(--surface) / .9); }
+/* Never let a coloured chip/badge on amber lose its dark text */
+.bg-turmeric { color: #14162F; }
+/* The theme switch should not make every element animate its colours */
+.theme-switching, .theme-switching * { transition: none !important; }
+:focus-visible { outline: 2px solid #6457E8; outline-offset: 2px; }
+::selection { background: #E8E5FF; color: #14162F; }
+@media (prefers-reduced-transparency: reduce) { .glass { background: rgb(var(--surface) / .95); backdrop-filter: none; } .glass-dark { background: #14162F; backdrop-filter: none; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; } }
+@media print { :root, html.dark { --ink: 20 22 47; --surface: 255 255 255; --edge: 255 255 255; --brand-text: 67 53 207; --danger-text: 194 65 12; color-scheme: light; } body, .dark body { background: #fff !important; } .glass { background: #fff !important; backdrop-filter: none !important; box-shadow: none !important; border: 0 !important; } @page { margin: 12mm; } }
+
+/* ---- Interface polish ------------------------------------------------------------------ */
+/* Numbers line up in columns and totals don't jiggle when digits change */
+table, td, th, dd, output, .tabular, input[type="number"] { font-variant-numeric: tabular-nums; }
+/* Headlines break evenly; paragraphs avoid a lonely last word */
+h1, h2, h3, .balance { text-wrap: balance; }
+p, li, dd { text-wrap: pretty; }
+/* Smoother "squircle" corners where the browser supports them (progressive enhancement) */
+@supports (corner-shape: squircle) { .glass, .glass-dark, button, input, select, textarea, [class*="rounded-xl"], [class*="rounded-2xl"] { corner-shape: squircle; } .rounded-full { corner-shape: round; } }
+/* Taps register at once (no double-tap-zoom delay) and small targets get a bigger invisible hit area on touch screens */
+a, button, summary, [role="button"], [role="switch"], label, input, select, textarea { touch-action: manipulation; }
+@media (pointer: coarse) {
+  input[type="checkbox"], input[type="radio"] { width: 1.25rem; height: 1.25rem; }
+  .hit { position: relative; } .hit::before { content: ""; position: absolute; inset: -0.5rem; }
+  .ghost-hit { position: relative; } .ghost-hit::before { content: ""; position: absolute; inset: -0.25rem; }
+}
+/* Page changes cross-fade; the sidebar and tab bar stay put. Off for people who ask for less motion. */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 160ms; animation-timing-function: ease-out; }
+::view-transition-group(d2h-side), ::view-transition-group(d2h-tabbar) { animation-duration: 0s; }
+@media (prefers-reduced-motion: reduce) { ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; } html { scroll-behavior: auto; } }
+/* Keep content clear of notches and rounded screen corners */
+body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+
+/* ---- Phones and small screens ---------------------------------------------------------- */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+img, svg, video, canvas { max-width: 100%; }
+/* Nothing should ever make the whole page slide sideways; wide tables and code scroll inside their own box instead. "clip" (not "hidden") keeps the sticky sidebar working. */
+body { overflow-x: clip; }
+@media (max-width: 767px) {
+  /* iOS Safari zooms the page when a field's text is smaller than 16px: keep every field at 16px on phones, whatever class it has */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]), select, textarea { font-size: 16px; }
+  /* Long names, SKUs, emails and URLs wrap instead of pushing the layout wider than the screen */
+  main { overflow-wrap: anywhere; }
+  /* Frosted glass is expensive on phones: a lighter blur keeps scrolling smooth and the look the same */
+  .glass, .glass-dark { backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+  /* iOS ignores fixed backgrounds and Android repaints them on every scroll */
+  body { background-attachment: scroll; }
+  /* Wide tables scroll smoothly with a finger and don't drag the page along */
+  .overflow-x-auto { -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+}
+
+/* While a search/filter is loading, the page stays visible and dims slightly instead of blanking */
+body[data-pending] main { opacity: .6; transition: opacity 150ms; }
+
+/* ---- Motion: content eases in, a few at a time (cheap: opacity + transform only) ----------- */
+.stagger > * { animation: rise .35s cubic-bezier(.2,.8,.2,1) both; }
+.stagger > *:nth-child(2) { animation-delay: 40ms; } .stagger > *:nth-child(3) { animation-delay: 80ms; } .stagger > *:nth-child(4) { animation-delay: 120ms; }
+.stagger > *:nth-child(5) { animation-delay: 160ms; } .stagger > *:nth-child(n+6) { animation-delay: 200ms; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+/* Landing page: bars grow from the baseline, ledger rows slide in, a soft dotted grid behind the hero */
+@keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.bar-grow { transform-origin: bottom; animation: grow .9s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes slidein { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+.row-in > * { animation: slidein .45s cubic-bezier(.2,.8,.2,1) both; }
+.row-in > *:nth-child(2) { animation-delay: .15s; } .row-in > *:nth-child(3) { animation-delay: .3s; } .row-in > *:nth-child(4) { animation-delay: .45s; } .row-in > *:nth-child(5) { animation-delay: .6s; } .row-in > *:nth-child(n+6) { animation-delay: .75s; }
+.dot-grid { background-image: radial-gradient(rgba(67,53,207,.16) 1px, transparent 1px); background-size: 22px 22px; -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%); mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%); }
+.dark .dot-grid { background-image: radial-gradient(rgba(164,155,255,.14) 1px, transparent 1px); }
+.text-gradient { background: linear-gradient(100deg, #4335CF 10%, #8B80F0 60%, #4335CF 90%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 6s linear infinite; }
+.dark .text-gradient { background-image: linear-gradient(100deg, #A49BFF 10%, #E8E5FF 60%, #A49BFF 90%); }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+/* Cards lift slightly on hover on devices with a mouse */
+@media (hover: hover) and (pointer: fine) { .lift { transition: transform .18s ease, box-shadow .18s ease; } .lift:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(67,53,207,.14); } }

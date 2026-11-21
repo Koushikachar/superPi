@@ -1,0 +1,8 @@
+[
+  {
+    "id": "GHSA-ggr8-5vv4-36mx",
+    "package": "deepmerge-ts (via prisma > @prisma/config)",
+    "reason": "Stack exhaustion when merging recursive objects inside the Prisma CLI's config loader. It only runs on developer machines and in the build, on this repo's own config, never on user input at runtime. The fix is Prisma 7, a breaking migration (new prisma.config.ts and datasource setup) that needs its own tested change.",
+    "expires": "2027-02-06"
+  }
+]

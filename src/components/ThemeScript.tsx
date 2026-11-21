@@ -1,0 +1,3 @@
+/** Runs before the first paint on every page: uses the saved choice (cookie d2h_theme) or, if there is none, the device's light/dark setting. This is what lets the public pages be plain static files served from the CDN instead of being rendered per visitor. A fixed string with no user input and no storage. */
+const THEME_JS = `try{var m=document.cookie.match(/(?:^|; )d2h_theme=(dark|light)/),d=m?m[1]==="dark":matchMedia("(prefers-color-scheme: dark)").matches;if(d)document.documentElement.classList.add("dark")}catch(e){}`;
+export default function ThemeScript() { return <script dangerouslySetInnerHTML={{ __html: THEME_JS }} />; }
