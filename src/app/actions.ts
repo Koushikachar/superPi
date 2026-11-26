@@ -32,7 +32,8 @@ export async function signIn(fd: FormData) {
   if (error) { console.warn("[auth] failed sign-in", { ip: await ip(), reason: error.status ?? error.code ?? "error" }); if (/not confirmed/i.test(error.message)) redirect(`/verify?email=${encodeURIComponent(p.data!.email)}&e=${encodeURIComponent("Verify your email first. We can send the link again")}`); fail("/login", /invalid login|credentials/i.test(error.message) ? "Wrong email or password" : "Could not sign you in. Try again in a minute."); }
   redirect("/dashboard");
 }
-const SITE = () => process.env.NEXT_PUBLIC_SITE_URL;
+/** The site's own address for links in emails and sign-in redirects. NEXT_PUBLIC_SITE_URL wins; if it is missing (a deploy without it), use the address this request came in on, so links never read "undefined/...". Supabase still only accepts redirect URLs on its allow-list. */
+const SITE = async () => { const env = (process.env.NEXT_PUBLIC_SITE_URL ?? "").trim().replace(/\/$/, ""); if (env) return env; const h = await headers(); return `${h.get("x-forwarded-proto") ?? "http"}://${h.get("x-forwarded-host") ?? h.get("host")}`; };
 export async function signUp(fd: FormData) {
   await gate("/register", fd, "register", 5);
   const p = z.object({ name: z.string().trim().min(2), email: z.string().trim().email(), password: z.string().min(12), confirm: z.string() }).safeParse(Object.fromEntries(fd));
@@ -40,7 +41,7 @@ export async function signUp(fd: FormData) {
   if (fd.get("age") !== "on") fail("/register", "Please confirm you are 18 or older");
   if (p.data!.password !== p.data!.confirm) fail("/register", "The two passwords don't match");
   const weak = await checkPassword(p.data!.password); if (weak) fail("/register", weak);
-  const { data, error } = await (await sbServer()).auth.signUp({ email: p.data!.email, password: p.data!.password, options: { data: { name: p.data!.name }, emailRedirectTo: `${SITE()}/auth/callback` } });
+  const { data, error } = await (await sbServer()).auth.signUp({ email: p.data!.email, password: p.data!.password, options: { data: { name: p.data!.name }, emailRedirectTo: `${await SITE()}/auth/callback` } });
   // An already-registered email is treated exactly like a new one (no account enumeration); other provider errors are shown only for password/rate problems.
   if (error && !/already|registered|exists/i.test(error.message)) fail("/register", /password|rate|too many|captcha/i.test(error.message) ? error.message : "We couldn't create the account. Please try again in a moment.");
   // An already-registered email gets exactly the same response as a new one (no account enumeration).
@@ -51,7 +52,7 @@ export async function resendVerification(fd: FormData) {
   const email = z.string().trim().email().safeParse(fd.get("email")); if (!email.success) fail("/register", "Enter a valid email");
   const q = encodeURIComponent(email.data!);
   await throttle(`/verify?email=${q}`, `resend:${await ip()}:${email.data!.toLowerCase()}`, 5, 15 * 60_000);
-  const { error } = await (await sbServer()).auth.resend({ type: "signup", email: email.data!, options: { emailRedirectTo: `${SITE()}/auth/callback` } });
+  const { error } = await (await sbServer()).auth.resend({ type: "signup", email: email.data!, options: { emailRedirectTo: `${await SITE()}/auth/callback` } });
   if (error) console.warn("[auth] resend failed", { ip: await ip(), reason: error.status ?? error.code ?? "error" });
   // Same answer whether or not the address has a waiting sign-up (no account enumeration). Only the "wait a minute" case is shown, because it helps a real person.
   redirect(error && /rate|too many|seconds|security purposes/i.test(error.message) ? `/verify?email=${q}&e=${encodeURIComponent("Please wait a minute before asking for another email")}` : `/verify?email=${q}&ok=1`);
@@ -74,7 +75,7 @@ export async function signOut() { await (await sbServer()).auth.signOut(); redir
 export async function signInWithGoogle(fd: FormData) {
   const back = fd.get("from") === "register" ? "/register" : "/login";
   await throttle(back, `google:${await ip()}`, 20, 15 * 60_000);
-  const h = await headers(), site = SITE()?.replace(/\/$/, "") || `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`; // Supabase only accepts redirect URLs on its allow-list
+  const site = await SITE();
   const { data, error } = await (await sbServer()).auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${site}/auth/callback?next=/dashboard`, queryParams: { prompt: "select_account" } } });
   const url = data?.url;
   if (error || !url) { console.warn("[auth] google start failed", { reason: error?.code ?? error?.status ?? "no url" }); return fail(back, "Google sign-in isn't available right now. Use your email and password, or try again in a minute."); }
@@ -253,7 +254,7 @@ export async function inviteStaff(fd: FormData) {
   if (!p.success) fail("/settings", "Enter a valid email and choose a role");
   const token = randomBytes(32).toString("hex");
   const inv = await db.invitation.create({ data: { orgId: c.orgId, email: p.data!.email.toLowerCase(), role: p.data!.role, tokenHash: hash(token), expiresAt: new Date(Date.now() + 7 * 864e5) } });
-  const link = `${process.env.NEXT_PUBLIC_SITE_URL}/invite/${token}`;
+  const link = `${await SITE()}/invite/${token}`;
   const m = await sendMail({ to: inv.email, subject: `You're invited to ${c.orgName} on Superpi`,
     html: inviteEmail({ org: c.orgName, role: inv.role, email: inv.email, link }) });
   if (!m.ok) { await db.invitation.delete({ where: { id: inv.id } }); fail("/settings", `Invitation not sent: ${m.error}`); }
@@ -285,7 +286,7 @@ const ROLES5 = ["OWNER", "INVENTORY_MANAGER", "ORDER_STAFF", "ACCOUNTANT", "ANAL
 export async function requestReset(fd: FormData) {
   await gate("/forgot", fd, "reset", 5);
   const email = z.string().trim().email().safeParse(fd.get("email")); if (!email.success) fail("/forgot", "Enter a valid email");
-  await (await sbServer()).auth.resetPasswordForEmail(email.data!, { redirectTo: `${SITE()}/auth/callback?next=/reset` });
+  await (await sbServer()).auth.resetPasswordForEmail(email.data!, { redirectTo: `${await SITE()}/auth/callback?next=/reset` });
   redirect("/forgot?sent=1"); // same answer whether or not the account exists
 }
 export async function setPassword(fd: FormData) {
@@ -344,23 +345,26 @@ export async function changeRole(fd: FormData) {
   const m = await db.membership.findFirst({ where: { id: p.data!.id, orgId: c.orgId } }); if (!m) fail("/settings", "Member not found");
   if (m!.userId === c.user.id) fail("/settings", "You can't change your own role");
   await db.$transaction([db.membership.update({ where: { id: m!.id }, data: { role: p.data!.role } }), db.auditLog.create({ data: { orgId: c.orgId, actorId: c.user.id, action: "staff.role_changed", detail: { membership: m!.id, to: p.data!.role } } })]);
-  revalidatePath("/settings"); redirect("/settings");
+  revalidatePath("/settings"); redirect(`/settings?ok=${encodeURIComponent(`Role changed to ${p.data!.role.replace(/_/g, " ").toLowerCase()}.`)}`);
 }
-export async function removeMember(fd: FormData) {
-  const c = await guard(["OWNER"], "/settings"), id = String(fd.get("id"));
-  const m = await db.membership.findFirst({ where: { id, orgId: c.orgId } }); if (!m) fail("/settings", "Member not found");
-  if (m!.userId === c.user.id) fail("/settings", "You can't remove yourself");
-  await db.$transaction([db.membership.delete({ where: { id } }), db.auditLog.create({ data: { orgId: c.orgId, actorId: c.user.id, action: "staff.removed", detail: { membership: id } } })]);
-  revalidatePath("/settings"); redirect("/settings");
+/** Team changes that answer with a result instead of a redirect, so the Settings page can update the row at once (optimistic) and show a toast.
+ *  A redirect from a slow save could be dropped by the browser and leave the old list on screen (the "cancel invite does nothing" bug). */
+type TeamResult = { ok: boolean; message: string };
+async function ownerCtx(): Promise<Awaited<ReturnType<typeof ctx>> | null> { const c = await ctx(); return c.role === "OWNER" ? c : null; }
+export async function removeMember(id: string): Promise<TeamResult> {
+  const c = await ownerCtx(); if (!c) return { ok: false, message: "Only the owner can manage the team." };
+  const m = await db.membership.findFirst({ where: { id: String(id), orgId: c.orgId } }); if (!m) return { ok: false, message: "That person is no longer on the team." };
+  if (m.userId === c.user.id) return { ok: false, message: "You can't remove yourself." };
+  await db.$transaction([db.membership.delete({ where: { id: m.id } }), db.auditLog.create({ data: { orgId: c.orgId, actorId: c.user.id, action: "staff.removed", detail: { membership: m.id } } })]);
+  revalidatePath("/settings"); return { ok: true, message: "Team member removed. Their seat is free again." };
 }
 /** Withdraws a pending invitation so its seat is free again. Scoped to the owner's own business. */
-export async function cancelInvite(fd: FormData) {
-  const c = await guard(["OWNER"], "/settings"), id = String(fd.get("id") ?? "");
-  const r = await db.invitation.deleteMany({ where: { id, orgId: c.orgId, usedAt: null } }); if (!r.count) fail("/settings", "Invitation not found");
+export async function cancelInvite(id: string): Promise<TeamResult> {
+  const c = await ownerCtx(); if (!c) return { ok: false, message: "Only the owner can manage the team." };
+  const r = await db.invitation.deleteMany({ where: { id: String(id), orgId: c.orgId, usedAt: null } }); if (!r.count) return { ok: false, message: "That invitation was already used or cancelled." };
   await db.auditLog.create({ data: { orgId: c.orgId, actorId: c.user.id, action: "staff.invite_cancelled", detail: { invitation: id } } });
-  revalidatePath("/settings"); redirect("/settings");
+  revalidatePath("/settings"); return { ok: true, message: "Invitation cancelled. Its link no longer works and the seat is free again." };
 }
-
 // ---- abuse protection -------------------------------------------------------------------
 // One shared limiter (src/lib/ratelimit.ts): Upstash Redis when configured, otherwise per-instance memory.
 async function throttle(path: string, key: string, max: number, ms = 60_000) { if (!(await rateAllow(key, max, ms))) fail(path, "Too many attempts. Please wait a few minutes and try again."); }
@@ -783,11 +787,12 @@ export async function submitContact(fd: FormData) {
   const back = "/contact";
   if (String(fd.get("website") ?? "").trim()) redirect("/contact?sent=1"); // hidden field: only bots fill it. Look successful, store nothing
   await gate(back, fd, "contact", 3);
-  const p = z.object({ name: z.string().trim().min(2).max(100), email: z.string().trim().toLowerCase().email().max(200), phone: z.string().trim().max(20).regex(/^[0-9+()\-\s]*$/).optional(), message: z.string().trim().min(10).max(2000) }).safeParse(Object.fromEntries(fd));
-  if (!p.success) { const f = String(p.error.issues[0].path[0]); fail(back, f === "message" ? "Please write a message of at least 10 characters (2000 at most)" : f === "email" ? "Please enter a valid email address" : f === "phone" ? "Phone can contain digits, spaces, + ( ) and - only" : "Please enter your name"); }
-  const d = p.data!, row = await db.contactMessage.create({ data: { name: d.name, email: d.email, phone: d.phone || null, message: d.message } });
+  const p = z.object({ name: z.string().trim().min(2).max(100), email: z.string().trim().toLowerCase().email().max(200), subject: z.string().trim().min(3).max(120), phone: z.string().trim().max(20).regex(/^[0-9+()\-\s]*$/).optional(), message: z.string().trim().min(10).max(2000) }).safeParse(Object.fromEntries(fd));
+  if (!p.success) { const f = String(p.error.issues[0].path[0]); fail(back, f === "message" ? "Please write a message of at least 10 characters (2000 at most)" : f === "email" ? "Please enter a valid email address" : f === "subject" ? "Please add a short subject (3 to 120 characters)" : f === "phone" ? "Phone can contain digits, spaces, + ( ) and - only" : "Please enter your full name"); }
+  // The subject is kept in the stored message (no schema change) and used as the email subject line.
+  const d = p.data!, body = `Subject: ${d.subject}\n\n${d.message}`, row = await db.contactMessage.create({ data: { name: d.name, email: d.email, phone: d.phone || null, message: body } });
   const to = process.env.CONTACT_TO || process.env.NEXT_PUBLIC_CONTACT_EMAIL;
-  if (to) { const r = await sendMail({ to, replyTo: d.email, subject: `Contact form: ${d.name}`, html: contactEmail({ name: d.name, email: d.email, phone: d.phone || null, message: d.message }) }); if (r.ok) await db.contactMessage.update({ where: { id: row.id }, data: { emailed: true } }); }
+  if (to) { const r = await sendMail({ to, replyTo: d.email, subject: `Contact form: ${d.subject.replace(/[\r\n]+/g, " ")} (${d.name})`, html: contactEmail({ name: d.name, email: d.email, phone: d.phone || null, message: body }) }); if (r.ok) await db.contactMessage.update({ where: { id: row.id }, data: { emailed: true } }); }
   redirect("/contact?sent=1");
 }
 

@@ -1,36 +1,135 @@
-import Legal, { H } from "@/components/Legal"; import { LEGAL } from "@/lib/legal"; import { pageMeta } from "@/lib/seo";
-export const metadata = pageMeta({ title: "Privacy policy", description: "How Superpi collects, uses and protects your data: what we keep, who helps us run the service, which cookies we use and the choices you have.", path: "/privacy" });
-const ul = "list-disc space-y-1 pl-5";
+import { pageMeta } from "@/lib/seo"; import Legal, { H, H3, UL, OL, DT, Mail } from "@/components/Legal"; import { LEGAL } from "@/lib/legal";
+export const metadata = pageMeta({ title: "Privacy policy", description: "How Superpi, operated by Direct2Hub Private Limited, collects, uses, stores, protects and shares information, and how to exercise your privacy rights.", path: "/privacy" });
+const TOC: [string, string][] = [["intro", "1. Introduction"], ["collect", "2. Information we collect"], ["use", "3. How we use information"], ["storage", "4. Storage of business data"], ["sharing", "5. Information sharing"], ["security", "6. Data security"], ["ownership", "7. Data ownership"], ["retention", "8. Data retention"], ["rights", "9. Your privacy rights"], ["deletion", "10. Account deletion"], ["cookies", "11. Cookies"], ["children", "12. Children's privacy"], ["links", "13. Third-party links"], ["changes", "14. Changes"], ["contact", "15. Contact & grievances"], ["law", "16. Applicable law"]];
 export default function Privacy() {
-  return <Legal title="Privacy policy" path="/privacy">
-    <p>This policy explains what personal data Superpi handles, why, who helps us handle it, and the choices you have.</p>
-    <H>1. Data we collect</H>
-    <ul className={ul}><li><b>Account data:</b> your name, email address and whether your email is verified. Your password is handled by our sign-in provider (Supabase) and is stored only as a hash. We never see or store it in readable form.</li>
-      <li><b>Business data you enter:</b> products, stock levels and movements, orders, customer details (name, contact, GSTIN, address), invoices and payments received, suppliers, purchase orders, returns, payment status, and team members with their roles.</li>
-      <li><b>Invitations:</b> the email address and role of people you invite, plus a one-way hash of the invitation link.</li>
-      <li><b>Contact messages:</b> if you use our contact form we keep your name, email, optional phone number and message so we can reply.</li>
-      <li><b>Subscription records:</b> your plan, billing period and payment receipts (amount, method and reference, never full card or UPI credentials).</li>
-      <li><b>Security and audit records:</b> who performed sensitive actions (for example changing a role or suspending an organization) and when.</li>
-      <li><b>Technical data:</b> IP address, browser type and request times in our hosting logs. If rate limiting is switched on, a temporary counter keyed to your IP address and email is kept for about 15 minutes to stop password-guessing.</li></ul>
-    <H>2. Why we use it</H>
-    <p>To run your account and organization, keep stock and order records accurate, send verification, reset and invitation emails, protect the service from abuse, and respond to support requests. We do not sell personal data and we do not use it for advertising.</p>
-    <H id="cookies">3. Cookies and browser storage</H>
-    <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead><tr className="border-b border-ink/20"><th className="py-2 pr-3">Name</th><th className="pr-3">Purpose</th><th className="pr-3">Type</th><th>Lasts</th></tr></thead><tbody>
-      {[["sb-…-auth-token","Keeps you signed in (HttpOnly, not readable by page scripts)","Essential","Until you sign out or it expires"], ["org","Remembers which organization you are working in","Essential","This browser session"], ["d2h_consent","Remembers your cookie choice","Essential","6 months"], ["d2h_theme","Remembers light or dark mode, only after you press the switch","Preference","1 year"], ["d2h_saved","Remembers the research ideas you starred (sent only to /research pages)","Preference","1 year"], ["_ga, _ga_…","Google Analytics visit counts on public pages, only after you choose Accept analytics","Analytics (optional)","Up to 2 years"]].map((r) =>
-        <tr key={r[0]} className="border-b border-ink/10 align-top"><td className="py-2 pr-3 font-medium">{r[0]}</td><td className="pr-3">{r[1]}</td><td className="pr-3">{r[2]}</td><td>{r[3]}</td></tr>)}</tbody></table></div>
-    <p>We use no advertising cookies. Every cookie above except Google Analytics is set by our server, not by scripts in your page, and nothing is kept in localStorage, sessionStorage or IndexedDB. Google Analytics runs only on our public pages (home, pricing, contact, sign-in and sign-up), only after you choose Accept analytics, with IP anonymization on and advertising features off. You can change your choice at any time with Cookie settings in the footer; choosing Essential only stops analytics immediately. If the bot-protection check (Cloudflare Turnstile) is enabled on sign-in forms, Cloudflare may store limited data in your browser to run that check; see Cloudflare's own policy.</p>
-    <H>4. Who processes data for us</H>
-    <ul className={ul}><li><b>Vercel:</b> hosting and server logs.</li><li><b>Supabase:</b> database and sign-in.</li><li><b>Google (Gmail):</b> sending invitation, invoice, alert and notification emails.</li><li><b>Cloudflare Turnstile:</b> bot protection on sign-in and contact forms, when enabled.</li><li><b>Google Analytics:</b> anonymized visit statistics for our public pages, only if you press Allow. It is configured not to set cookies.</li><li><b>Razorpay and Stripe:</b> to take payment for plans, and (if you connect your own Razorpay account) to let your customers pay your invoices. Card and UPI details go to them, not to us. Keys you enter for your own Razorpay account are stored encrypted and used only to create and check payment links.</li><li><b>Cloudinary:</b> stores product pictures you upload, when image storage is enabled.</li><li><b>AI providers (Groq, Google Gemini, OpenRouter or a server you choose):</b> when you use the assistant, Product intelligence or AI descriptions, your question and the product, order or sales details needed to answer it are sent to the AI provider that is switched on. Nothing is sent unless you use an AI feature, and we do not send passwords or payment details.</li><li><b>Shopify and courier services:</b> only if you connect them, to sync orders and tracking.</li><li><b>Upstash:</b> short-lived rate-limit counters, when enabled.</li><li><b>Have I Been Pwned:</b> when you choose a password we send only the first five characters of its hash, never the password, to check it against known breaches.</li></ul>
-    <p>These providers may process data in countries outside India. [Confirm your providers' regions and update this list to match your final setup.]</p>
-    <H>5. How long we keep data</H>
-    <p>Business data is kept while your organization is active. Unused invitations expire after 7 days. Audit records are kept to protect the service. You can ask us to delete your data (see section 7); backups roll off on the provider's schedule. [State your actual backup retention period.]</p>
-    <H>6. Security</H>
-    <p>Data is isolated by organization and limited by role, traffic is encrypted with HTTPS, sign-in is rate-limited, passwords must be at least 12 characters and are checked against known breaches, and sensitive actions are logged. No system is perfectly secure, so please use a strong, unique password and tell us if you suspect misuse.</p>
-    <H>7. Your choices and rights</H>
-    <p>You can ask us to access, correct or delete your personal data, or to withdraw consent where we rely on it, by emailing {LEGAL.email}. Organization owners can remove team members in Settings → Team. You may also have rights under applicable Indian law, including the Digital Personal Data Protection Act, 2023; a lawyer should confirm how it applies to you. [Name your grievance officer and response time here.]</p>
-    <H>8. Children</H>
-    <p>Superpi is for businesses and is not intended for anyone under 18.</p>
-    <H>9. Changes</H>
-    <p>If we change this policy in a meaningful way we will update the date above and, where appropriate, tell you by email.</p>
+  return <Legal title="Privacy policy" path="/privacy" toc={TOC}>
+    <H id="intro">1. Introduction</H>
+    <p>Welcome to Superpi.</p>
+    <p>Superpi (&quot;Superpi&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is an inventory management and AI-powered business software platform founded and operated by {LEGAL.company}, an Indian registered company.</p>
+    <p>Website: <a href={LEGAL.website} className="text-brand underline">{LEGAL.website}</a></p>
+    <p>We respect your privacy and recognize the importance of protecting personal information and business data.</p>
+    <p>This Privacy Policy explains how information is collected, used, processed, stored, protected, and disclosed when you access or use the Superpi website, application, Business AI Assistant, and related services (collectively, the &quot;Services&quot;).</p>
+    <p>By using Superpi, you acknowledge this Privacy Policy. Where consent is required by applicable law, we will seek it separately.</p>
+
+    <H id="collect">2. Information We Collect</H>
+    <H3>2.1 Account Information</H3>
+    <p>When you create or use a Superpi account, we may collect:</p>
+    <UL items={["Full name", "Email address", "Business or organization name, where provided", "Authentication and account identification information", "Account preferences", "Other information voluntarily provided during registration or account management"]} />
+    <H3>2.2 Login and Authentication Information</H3>
+    <p>Superpi supports email-and-password authentication and Google sign-in.</p>
+    <p>For email-and-password accounts, authentication information is processed to verify account access.</p>
+    <p>When users choose Google sign-in, we may receive relevant account identification information, such as a name, email address, and account identifier, depending on the permissions granted and the authentication configuration.</p>
+    <p>Google authentication is also subject to Google&apos;s applicable privacy practices.</p>
+    <p>Superpi does not require users to disclose their Google account passwords to Superpi.</p>
+    <H3>2.3 Business and Inventory Information</H3>
+    <p>When using Superpi, users may provide business information including:</p>
+    <UL items={["Product names and descriptions", "Product categories and SKUs", "Product prices and inventory values", "Stock quantities", "Inventory adjustments and associated records", "Other information entered into inventory-related features"]} />
+    <p>This information is used to provide the requested inventory management functionality.</p>
+    <H3>2.4 Business AI Assistant Information</H3>
+    <p>When you use the Business AI Assistant, Superpi may process:</p>
+    <UL items={["Questions and prompts submitted to the assistant", "Relevant inventory and dashboard data from your account", "AI-generated responses", "Technical records associated with AI requests"]} />
+    <p>Superpi uses an external AI technology provider to support the Business AI Assistant.</p>
+    <p>Information necessary to answer your requests may be transmitted to and processed by that provider, subject to the provider&apos;s technical arrangements and applicable data protection requirements.</p>
+    <p>Although Superpi&apos;s primary application database is hosted in India, AI-related processing may involve systems operated by an external provider.</p>
+    <p>Data location, retention, and processing arrangements for external AI services may differ from those of Superpi&apos;s primary database.</p>
+    <p>Users should avoid entering unnecessary personal, highly sensitive, or confidential third-party information into AI prompts.</p>
+    <H3>2.5 Technical and Usage Information</H3>
+    <p>When you access the Services, certain technical information may be processed, including:</p>
+    <UL items={["IP address", "Browser and device information", "Operating system information", "Login and session information", "Access dates and times", "Error reports", "Security logs", "Application performance information"]} />
+    <p>We use this information where necessary to operate, secure, maintain, and improve the Services.</p>
+    <H3>2.6 Communications</H3>
+    <p>When you email us or request support, we may collect the contact information and message content necessary to respond to your inquiry.</p>
+
+    <H id="use">3. How We Use Your Information</H>
+    <p>We may use information to:</p>
+    <OL items={["Create and maintain user accounts.", "Authenticate users securely.", "Provide inventory management services.", "Process inventory and product information.", "Operate the Business AI Assistant.", "Display account-specific business information.", "Provide technical and customer support.", "Detect and prevent fraudulent or unauthorized activity.", "Maintain and improve system performance.", "Communicate important service and security updates.", "Comply with applicable legal obligations.", "Perform other purposes disclosed to users and permitted by law."]} />
+    <p>We will use personal information only for purposes permitted by applicable law and obtain consent where required.</p>
+
+    <H id="storage">4. Storage of Business Data</H>
+    <p>Superpi&apos;s primary application data storage is located in India.</p>
+    <p>This includes the primary database infrastructure used to maintain information associated with the inventory management platform.</p>
+    <p>However, external services used for authentication, AI processing, infrastructure operations, or support may process information through their own systems.</p>
+    <p>We do not represent that every category of data processed in connection with Superpi remains exclusively within India.</p>
+    <p>Any applicable cross-border processing must comply with relevant legal requirements.</p>
+
+    <H id="sharing">5. Information Sharing</H>
+    <p>We may disclose information to authorized third parties where reasonably necessary to provide the Services or comply with applicable law.</p>
+    <p>Such parties may include:</p>
+    <DT t="Cloud and Infrastructure Providers">To host and maintain the application and its supporting infrastructure.</DT>
+    <DT t="AI Technology Providers">To process relevant prompts and business information and generate responses through the Business AI Assistant.</DT>
+    <DT t="Authentication Providers">To enable account access, including Google sign-in.</DT>
+    <DT t="Technical Service Providers">To support platform maintenance, diagnostics, security, and operational functions.</DT>
+    <DT t="Legal and Regulatory Authorities">Where disclosure is required or permitted by law.</DT>
+    <DT t="Corporate Transaction Parties">Where information must be transferred as part of a lawful restructuring, merger, or acquisition, subject to applicable safeguards.</DT>
+    <p>Superpi does not sell personal information to advertisers as part of its stated business model.</p>
+    <p>We do not authorize service providers to use personal information for unrelated purposes unless separately permitted under applicable law.</p>
+
+    <H id="security">6. Data Security</H>
+    <p>We recognize the importance of protecting user information.</p>
+    <p>We seek to maintain reasonable technical and organizational security safeguards suitable for the Services and the information processed.</p>
+    <p>These may include authentication controls, access restrictions, secure connections, monitoring, and other appropriate safeguards implemented within our systems.</p>
+    <p>However, no online platform can guarantee absolute security.</p>
+    <p>Users should protect their login credentials, use appropriate account security practices, and report suspected unauthorized access to <Mail to={LEGAL.support} />.</p>
+
+    <H id="ownership">7. Data Ownership and Control</H>
+    <p>Users retain their rights in the business information and inventory records they submit to Superpi.</p>
+    <p>Submitting information to Superpi does not transfer ownership of the underlying business data to {LEGAL.company}.</p>
+    <p>We process this information to provide the Services, operate applicable features, maintain security, and meet other purposes described in this Privacy Policy.</p>
+    <p>Users remain responsible for ensuring that they have the necessary authorization to submit and process their business data.</p>
+
+    <H id="retention">8. Data Retention</H>
+    <p>We retain information for as long as reasonably necessary to provide the Services, maintain accounts, fulfill disclosed processing purposes, and comply with legal obligations.</p>
+    <p>Retention periods may depend on the type of information and the purpose of processing.</p>
+    <p>When information is no longer required, we will handle deletion, anonymization, or secure disposal according to applicable legal and operational requirements.</p>
+    <p>Certain records may be retained for legal compliance, security, fraud prevention, or dispute resolution.</p>
+    <p>External technology providers may have separate processing and retention arrangements that apply to information processed through their systems.</p>
+
+    <H id="rights">9. Your Privacy Rights</H>
+    <p>Subject to applicable law, users may request:</p>
+    <UL items={["Access to information about the processing of their personal data", "Correction of inaccurate personal information", "Updating of incomplete or outdated personal information", "Erasure of eligible personal information", "Withdrawal of consent where applicable", "Information about available grievance redressal procedures", "Other rights available under applicable privacy laws"]} />
+    <p>Requests may require identity or account ownership verification.</p>
+    <p>To submit a request, email <Mail to={LEGAL.support} />.</p>
+    <p>We will respond in accordance with applicable legal requirements.</p>
+
+    <H id="deletion">10. Account Deletion</H>
+    <p>Users who wish to delete their Superpi account may send a request to <Mail to={LEGAL.support} /> from their registered email address.</p>
+    <p>We may request additional verification before proceeding.</p>
+    <p>Where deletion is applicable, associated information will be handled according to legal retention requirements and our technical procedures.</p>
+    <p>Certain information may remain temporarily in backups or be retained where required by law.</p>
+    <p>Users should preserve important inventory records before requesting account deletion.</p>
+
+    <H id="cookies">11. Cookies and Similar Technologies</H>
+    <p>Superpi may use cookies, local storage, and similar browser technologies to operate the website and application.</p>
+    <p>These technologies may support:</p>
+    <UL items={["User authentication", "Session management", "Account preferences", "Website functionality", "Security", "Performance monitoring"]} />
+    <p>Where non-essential analytics or tracking technologies are implemented, we will provide applicable disclosures and consent options as required by law.</p>
+    <p>Users may manage cookies through their browser settings. Restricting essential cookies may affect application functionality.</p>
+
+    <H id="children">12. Children&apos;s Privacy</H>
+    <p>Superpi is intended for business use and is not designed for independent use by children under 18.</p>
+    <p>Users under 18 must have any parental or guardian involvement and authorization required by applicable law.</p>
+    <p>Where we identify personal information processed in violation of applicable children&apos;s privacy requirements, we will take appropriate corrective measures.</p>
+
+    <H id="links">13. Third-Party Links and Services</H>
+    <p>The Superpi website may contain links to third-party services.</p>
+    <p>We are not responsible for the privacy practices of independently operated third-party websites.</p>
+    <p>Users should review the applicable policies of external services before providing their information.</p>
+
+    <H id="changes">14. Changes to This Privacy Policy</H>
+    <p>We may update this Privacy Policy to reflect changes in our Services, technology, operational practices, or legal requirements.</p>
+    <p>Updated versions will be published at <a href={LEGAL.website} className="text-brand underline">{LEGAL.website}</a> with the revised effective date.</p>
+    <p>Where required, we will notify users or request additional consent for material changes.</p>
+
+    <H id="contact">15. Contact and Privacy Grievances</H>
+    <p>For privacy questions, account deletion, personal data requests, or complaints, contact:</p>
+    <div className="rounded-2xl border border-edge/60 bg-lavender/30 p-5 dark:bg-white/5">
+      <p><b className="text-ink">Platform:</b> {LEGAL.product}</p><p><b className="text-ink">Company:</b> {LEGAL.company}</p>
+      <p><b className="text-ink">Support &amp; Privacy Email:</b> <Mail to={LEGAL.support} /></p>
+      <p><b className="text-ink">Registered Office:</b> {LEGAL.address}.</p><p><b className="text-ink">Website:</b> <a href={LEGAL.website} className="text-brand underline">{LEGAL.website}</a></p></div>
+    <p>Privacy-related inquiries may be directed to the Company&apos;s support and privacy contact through the email address above.</p>
+
+    <H id="law">16. Applicable Law</H>
+    <p>This Privacy Policy is governed by applicable laws of India, including relevant provisions of the Information Technology Act, 2000, and applicable provisions of the Digital Personal Data Protection Act, 2023, and associated rules as they come into force.</p>
+    <p>Nothing in this Privacy Policy limits rights or remedies that cannot legally be restricted.</p>
   </Legal>;
 }

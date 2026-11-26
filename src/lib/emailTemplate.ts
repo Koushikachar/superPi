@@ -47,7 +47,8 @@ export const small = (html: string) => `<p style="margin:18px 0 0;font-size:13px
 export type Layout = { preheader?: string; eyebrow?: string; eyebrowTone?: "ok" | "warn" | "danger" | "info"; title: string; body: string; cta?: { label: string; url: string }; after?: string; footer?: string; from?: string };
 export function emailLayout(o: Layout): string {
   const pre = o.preheader ? `<div class="preheader" style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;mso-hide:all;">${esc(o.preheader)}${"&zwnj;&nbsp;".repeat(60)}</div>` : "";
-  const base = site(), company = process.env.NEXT_PUBLIC_COMPANY_NAME, addr = process.env.NEXT_PUBLIC_COMPANY_ADDRESS;
+  // shortcut: same values as lib/legal.ts, copied because scripts/build-auth-emails.mjs runs this file on its own (Node can't resolve app imports); keep both in sync.
+  const base = site(), company = "Direct2Hub Private Limited", addr = "Shop No. 39-07 & 30-B, P.V.S. Complex, Kundapura, Udupi – 576201, Karnataka, India";
   const legal = [company, addr].filter(Boolean).map(esc).join(" · ");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"><title>${esc(o.title)}</title>
 <style>@media only screen and (max-width:620px){.wrap{width:100%!important}.px{padding-left:22px!important;padding-right:22px!important}.h1{font-size:25px!important}}</style></head>

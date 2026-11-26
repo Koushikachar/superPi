@@ -6,7 +6,8 @@ export default function PublicHeader({ current }: { current?: "pricing" | "conta
   return <header className="glass sticky top-3 z-10 mx-3 mt-3 flex max-w-6xl items-center justify-between gap-2 px-3 py-2 sm:px-4 md:mx-auto md:px-6 md:py-3">
     <Link href="/" aria-label="Superpi home" className="shrink-0"><Logo height={24} priority className="min-[380px]:!h-[26px] md:!h-[30px]" /></Link>
     <nav aria-label="Site" className="flex min-w-0 items-center gap-0.5 whitespace-nowrap text-sm min-[380px]:gap-1 md:gap-3">
-      <Link href="/#how" className={`${link} hidden md:block`}>How it works</Link>
+      <Link href="/#how" className={`${link} hidden lg:block`}>How it works</Link>
+      <Link href="/about" className={`${link} hidden md:block`}>About</Link>
       {current !== "pricing" && <Link href="/pricing" className={`${link} hidden min-[420px]:block`}>Pricing</Link>}
       {current !== "contact" && <Link href="/contact" className={`${link} hidden sm:block`}>Contact</Link>}
       <Link href="/login" className={link}>Sign in</Link>

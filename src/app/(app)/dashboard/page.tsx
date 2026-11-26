@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Stat } from "@/components/Shell"; import { SalesChart, StatusChart } from "@/components/ChartsLazy"; import { Panel } from "@/components/ui";
+import { Stat } from "@/components/Shell"; import { SalesChart, StatusChart } from "@/components/ChartsLazy"; import { Panel, Err } from "@/components/ui"; import { canOpen, seesSales, seesCosts } from "@/lib/access";
 import { db } from "@/lib/db"; import { ctx } from "@/lib/ctx";
 export const dynamic = "force-dynamic";
 const inr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
@@ -9,8 +9,8 @@ const MOVE: Record<string, [string, 1 | -1 | 0]> = { OPENING: ["Opening stock", 
   DAMAGE: ["Set aside as damaged", -1], RETURN_RESTOCK: ["Return restocked", 1], TRANSFER_OUT: ["Transferred out", -1], TRANSFER_IN: ["Transferred in", 1], ASSEMBLY_IN: ["Assembled", 1], ASSEMBLY_OUT: ["Used in assembly", -1] };
 const quick: [string, string, string][] = [["Add product", "/products", "M12 5v14M5 12h14"], ["New order", "/orders", "M6 3h12v18l-3-2-3 2-3-2-3 2V3zM9 8h6M9 12h6"], ["Receive goods", "/purchases", "M3 7h11v9H3zM14 10h4l3 3v3h-7"], ["Count stock", "/counts", "M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"]];
 
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
-  const c = await ctx(), orgId = c.orgId, { range } = await searchParams, days = [7, 30, 90].includes(Number(range)) ? Number(range) : 30;
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ range?: string; e?: string }> }) {
+  const c = await ctx(), orgId = c.orgId, { range, e } = await searchParams, ok = (h: string) => canOpen(c.role, h, c.op), money = seesSales(c.role) || c.op, costs = seesCosts(c.role) || c.op, days = [7, 30, 90].includes(Number(range)) ? Number(range) : 30;
   const since = new Date(Date.now() - days * 864e5), sold = { in: ["DISPATCHED", "DELIVERED"] as ("DISPATCHED" | "DELIVERED")[] };
   const [products, bal, byStatus, low, val, orders, top, mv] = await Promise.all([
     db.product.count({ where: { orgId, archived: false } }),
@@ -40,20 +40,23 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     </header>
 
     <div className="stagger mt-5 space-y-5 md:mt-6 md:space-y-6">
-      <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">{quick.map(([l, h, d]) => <Link key={l} href={h} className="glass flex shrink-0 items-center gap-2 px-4 py-2.5 text-sm font-medium transition hover:-translate-y-0.5 hover:text-brand"><svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4 text-brand dark:text-lavender" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>{l}</Link>)}</div>
+      <Err e={e} />
+      <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">{quick.filter(([, h]) => ok(h)).map(([l, h, d]) => <Link key={l} href={h} className="glass flex shrink-0 items-center gap-2 px-4 py-2.5 text-sm font-medium transition hover:-translate-y-0.5 hover:text-brand"><svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4 text-brand dark:text-lavender" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>{l}</Link>)}</div>
 
       {products === 0 && <Link href="/products" className="relative flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-2xl bg-navy p-6 text-white transition hover:-translate-y-0.5">
         <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-brand/60 blur-3xl" />
         <span className="relative"><b className="block text-lg">Add your first product to start tracking stock.</b><span className="text-white/70">Superpi is free for up to 100 products.</span></span><span className="relative rounded-xl bg-white px-4 py-2 font-semibold text-navy">Add product</span></Link>}
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
-        <Stat label="Available to sell" value={(sellable - reserved).toLocaleString("en-IN")} hint={`${sellable} sellable − ${reserved} reserved`} icon={ICON.box} href="/inventory" />
-        <Stat label="Stock value at cost" value={inr(Number(val[0]?.v ?? 0))} hint="Sellable units × unit cost" icon={ICON.rupee} href="/reports" />
-        <Stat label={`Sales, last ${days} days`} value={inr(revenue)} hint={`${orders.length} dispatched order${orders.length === 1 ? "" : "s"}, before returns`} icon={ICON.chart} href="/orders" />
-        <Stat label="Low-stock products" value={lowCount} tone={lowCount ? "warn" : "brand"} hint={`of ${products} active product${products === 1 ? "" : "s"}`} icon={ICON.bell} href="/inventory" /></div>
+        <Stat label="Available to sell" value={(sellable - reserved).toLocaleString("en-IN")} hint={`${sellable} sellable − ${reserved} reserved`} icon={ICON.box} href={ok("/inventory") ? "/inventory" : undefined} />
+        {costs ? <Stat label="Stock value at cost" value={inr(Number(val[0]?.v ?? 0))} hint="Sellable units × unit cost" icon={ICON.rupee} href={ok("/reports") ? "/reports" : undefined} />
+          : <Stat label="Active products" value={products} hint="Products you can sell" icon={ICON.rupee} href={ok("/products") ? "/products" : undefined} />}
+        {money ? <Stat label={`Sales, last ${days} days`} value={inr(revenue)} hint={`${orders.length} dispatched order${orders.length === 1 ? "" : "s"}, before returns`} icon={ICON.chart} href={ok("/orders") ? "/orders" : undefined} />
+          : <Stat label={`Dispatched, last ${days} days`} value={orders.length} hint="Orders sent to customers" icon={ICON.chart} href={ok("/orders") ? "/orders" : undefined} />}
+        <Stat label="Low-stock products" value={lowCount} tone={lowCount ? "warn" : "brand"} hint={`of ${products} active product${products === 1 ? "" : "s"}`} icon={ICON.bell} href={ok("/inventory") ? "/inventory" : undefined} /></div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <Panel title="Sales over time"><p className="-mt-2 mb-3 text-xs text-ink/60">Dispatched order totals by order date</p>{orders.length ? <SalesChart data={series} /> : <Empty>No dispatched orders in the last {days} days.</Empty>}</Panel>
+      <div className={`grid gap-4 ${money ? "lg:grid-cols-[1.4fr_1fr]" : ""}`}>
+        {money && <Panel title="Sales over time"><p className="-mt-2 mb-3 text-xs text-ink/60">Dispatched order totals by order date</p>{orders.length ? <SalesChart data={series} /> : <Empty>No dispatched orders in the last {days} days.</Empty>}</Panel>}
         <Panel title="Orders by status"><p className="-mt-2 mb-3 text-xs text-ink/60">Orders created in this period</p>{byStatus.length ? <StatusChart data={byStatus.map((s) => ({ s: s.status.toLowerCase(), n: s._count }))} /> : <Empty>No orders in the last {days} days.</Empty>}</Panel></div>
 
       <div className="grid gap-4 lg:grid-cols-3">

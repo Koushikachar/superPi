@@ -16,8 +16,8 @@ export function organizationLd() {
   const base = siteUrl();
   return { "@context": "https://schema.org", "@graph": [
     { "@type": "Organization", "@id": `${base}/#organization`, name: SITE_NAME, url: base, logo: { "@type": "ImageObject", url: `${base}/logo.png`, width: 512, height: 512 },
-      ...(legalReady ? { legalName: LEGAL.company, email: LEGAL.email, contactPoint: [{ "@type": "ContactPoint", contactType: "customer support", email: LEGAL.email, url: `${base}/contact`, areaServed: "IN", availableLanguage: ["English"] }] } : { contactPoint: [{ "@type": "ContactPoint", contactType: "customer support", url: `${base}/contact`, areaServed: "IN", availableLanguage: ["English"] }] }),
-      ...(process.env.NEXT_PUBLIC_COMPANY_ADDRESS ? { address: { "@type": "PostalAddress", streetAddress: process.env.NEXT_PUBLIC_COMPANY_ADDRESS, addressCountry: "IN" } } : {}) },
+      ...(legalReady ? { legalName: LEGAL.company, email: LEGAL.email, contactPoint: [{ "@type": "ContactPoint", contactType: "customer support", email: LEGAL.support, url: `${base}/contact`, areaServed: "IN", availableLanguage: ["English"] }] } : { contactPoint: [{ "@type": "ContactPoint", contactType: "customer support", url: `${base}/contact`, areaServed: "IN", availableLanguage: ["English"] }] }),
+      address: { "@type": "PostalAddress", streetAddress: "Shop No. 39-07 & 30-B, P.V.S. Complex", addressLocality: "Kundapura, Udupi", postalCode: "576201", addressRegion: "Karnataka", addressCountry: "IN" }, ...(legalReady ? { brand: { "@type": "Brand", name: LEGAL.product }, identifier: LEGAL.cin } : {}) },
     { "@type": "WebSite", "@id": `${base}/#website`, url: base, name: SITE_NAME, inLanguage: "en-IN", publisher: { "@id": `${base}/#organization` } }] };
 }
 export const GA_RE = /^G-[A-Z0-9]{4,14}$/;
