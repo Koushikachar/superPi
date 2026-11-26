@@ -23,7 +23,8 @@ export async function middleware(req: NextRequest) {
   const staleCookies = !u && /refresh_token_not_found|already_used|invalid refresh token/i.test(`${got.error?.code ?? ""} ${got.error?.message ?? ""}`) ? req.cookies.getAll().map((c) => c.name).filter((n) => /^sb-.+-auth-token(\.\d+)?$/.test(n)) : [];
   staleCookies.forEach((n) => req.cookies.delete(n));
   const h = new Headers(req.headers);
-  ["x-d2h-uid", "x-d2h-email", "x-d2h-ok", "x-d2h-name", "x-d2h-mfa", "x-d2h-aal"].forEach((k) => h.delete(k));
+  ["x-d2h-uid", "x-d2h-email", "x-d2h-ok", "x-d2h-name", "x-d2h-mfa", "x-d2h-aal", "x-d2h-path"].forEach((k) => h.delete(k));
+  h.set("x-d2h-path", req.nextUrl.pathname); // which page is being opened, so ctx() can apply the role's section access
   if (u) {
     // Two-step sign-in: if this account has a verified authenticator, the session must have passed the code check (aal2). If the check itself fails, assume it has not (fail closed).
     let aal = "aal1", pending = false;

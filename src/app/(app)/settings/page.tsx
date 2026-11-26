@@ -1,5 +1,5 @@
 import Link from "next/link";
-import SubmitButton from "@/components/SubmitButton"; import ConfirmSubmit from "@/components/ConfirmSubmit";
+import SubmitButton from "@/components/SubmitButton"; import TeamRow from "@/components/TeamRow";
 import { Err, inp, btn, ghost } from "@/components/ui";
 import { db } from "@/lib/db"; import { usage } from "@/lib/plan"; import { ctx } from "@/lib/ctx"; import { inviteStaff, setOrg, changeRole, removeMember, cancelInvite, updateOrgProfile, setLowStockAlerts, setBackorders } from "@/app/actions";
 import { STATES } from "@/lib/gst";
@@ -49,19 +49,18 @@ export default async function Settings({ searchParams }: { searchParams: Promise
 
         <Section id="team" icon={ICON.team} title="Team" desc={`1 owner and up to ${u.members - 1} members. Invitations count as seats.`} aside={<span className="rounded-full border border-edge/70 px-3 py-1 text-xs font-semibold"><b className="text-brand">{seatsLeft}</b> seat{seatsLeft === 1 ? "" : "s"} left</span>}>
           <ul className="divide-y divide-edge/60">
-            {[...owners, ...members].map((s) => { const self = s.userId === c.user.id, name = s.user.name || s.user.email; return <li key={s.id} className="flex flex-wrap items-center gap-3 py-3 first:pt-0">
+            {[...owners, ...members].map((s) => { const self = s.userId === c.user.id, name = s.user.name || s.user.email; const canRemove = isOwner && s.role !== "OWNER";
+              return <TeamRow key={s.id} className="flex flex-wrap items-center gap-3 py-3 first:pt-0" action={canRemove ? { id: s.id, run: removeMember, label: "Remove", confirm: `Remove ${name} from ${c.orgName}? They lose access straight away.`, className: `${ghost} text-danger` } : undefined}>
               <span aria-hidden className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold ${s.role === "OWNER" ? "bg-brand text-white" : "bg-lavender text-brand dark:bg-white/10 dark:text-lavender"}`}>{initial(name)}</span>
               <div className="min-w-0 flex-1"><p className="truncate font-medium">{name}{self && <span className="ml-2 text-xs font-normal text-ink/60">(you)</span>}</p><p className="truncate text-xs text-ink/70">{s.user.name ? s.user.email : ROLE_HINT[s.role] ?? ""}</p></div>
               {s.role === "OWNER" || !isOwner ? <span className={`rounded-full px-3 py-1 text-xs font-semibold ${s.role === "OWNER" ? "bg-brand/10 text-brand" : "border border-edge/70"}`}>{ROLE_LABEL[s.role]}</span>
                 : <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto"><form action={changeRole} className="flex items-center gap-2"><input type="hidden" name="id" value={s.id} /><label className="sr-only" htmlFor={`r-${s.id}`}>Role for {name}</label>
-                    <select id={`r-${s.id}`} name="role" defaultValue={s.role} className={`${inp} !w-auto`}>{STAFF_ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}</select><SubmitButton className={ghost}>Save</SubmitButton></form>
-                  <form action={removeMember}><input type="hidden" name="id" value={s.id} /><ConfirmSubmit message={`Remove ${name} from ${c.orgName}? They lose access straight away.`} className={`${ghost} text-danger`}>Remove</ConfirmSubmit></form></div>}
-            </li>; })}
-            {pend.map((i) => <li key={i.id} className="flex flex-wrap items-center gap-3 py-3">
+                    <select id={`r-${s.id}`} name="role" defaultValue={s.role} className={`${inp} !w-auto`}>{STAFF_ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}</select><SubmitButton className={ghost}>Save</SubmitButton></form></div>}
+            </TeamRow>; })}
+            {pend.map((i) => <TeamRow key={i.id} className="flex flex-wrap items-center gap-3 py-3" action={isOwner ? { id: i.id, run: cancelInvite, label: "Cancel invite", className: ghost } : undefined}>
               <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-dashed border-brand/50 text-sm font-bold text-brand">{initial(i.email)}</span>
               <div className="min-w-0 flex-1"><p className="truncate font-medium">{i.email}</p><p className="text-xs text-ink/70">Invited as {ROLE_LABEL[i.role]} · expires {i.expiresAt.toLocaleDateString("en-IN")}</p></div>
-              <span className="rounded-full bg-turmeric/20 px-3 py-1 text-xs font-semibold">Pending</span>
-              {isOwner && <form action={cancelInvite}><input type="hidden" name="id" value={i.id} /><SubmitButton className={ghost}>Cancel invite</SubmitButton></form>}</li>)}
+              <span className="rounded-full bg-turmeric/20 px-3 py-1 text-xs font-semibold">Pending</span></TeamRow>)}
           </ul>
           {isOwner && (seatsLeft > 0 ? <form action={inviteStaff} className="mt-4 grid gap-3 rounded-2xl border border-dashed border-brand/30 bg-lavender/30 p-4 dark:bg-white/[.03] sm:grid-cols-[1fr_auto_auto] sm:items-end">
               <label className="text-sm">Invite by email<input name="email" type="email" required autoComplete="off" placeholder="name@yourshop.com" className={inp} /></label>

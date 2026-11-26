@@ -87,6 +87,15 @@ describe("mobile layout, theme toggle and speed settings", () => {
   });
   it("the theme script is a fixed string (no user input) and only reads the cookie", () => { const t = read("src/components/ThemeScript.tsx"); expect(t).not.toMatch(/\$\{/); expect(t).not.toMatch(/document\.cookie\s*=/); });
   it("middleware still covers every page and API route (static pages did not remove the header-stripping layer)", () => { const t = read("src/middleware.ts"); expect(t).toMatch(/matcher: \["\/\(\(\?!_next\/static\|_next\/image\|favicon\.ico\)\.\*\)"\]/); expect(t).toMatch(/h\.delete\(k\)/); });
-  it("Vercel functions run in Mumbai, next to the Supabase database", () => { const v = JSON.parse(read("vercel.json")); expect(v.regions).toEqual(["bom1"]); expect(v.crons?.length).toBeGreaterThan(0); expect(read(".env.example")).toMatch(/ap-south-1/); });
+  // The server must sit in the same region as the database: every page makes several queries, and each one crosses the distance between them.
+  // The Supabase project is in Tokyo (ap-northeast-1) -> Vercel hnd1. If the database moves to Mumbai (ap-south-1), switch this to bom1.
+  it("Vercel functions run next to the Supabase database (Tokyo)", () => { const v = JSON.parse(read("vercel.json")); expect(v.regions).toEqual(["hnd1"]); expect(v.crons?.length).toBeGreaterThan(0); });
+  it("database connections wait out slow moments instead of crashing (longer connect / pool timeouts; explicit URL values win)", async () => {
+    const { tunedUrl } = await import("../src/lib/db");
+    expect(tunedUrl("postgresql://u:p@h:6543/postgres?pgbouncer=true")).toBe("postgresql://u:p@h:6543/postgres?pgbouncer=true&connect_timeout=30&pool_timeout=30");
+    expect(tunedUrl("postgresql://u:p@h:6543/postgres")).toBe("postgresql://u:p@h:6543/postgres?connect_timeout=30&pool_timeout=30");
+    expect(tunedUrl("postgresql://u:p@h/db?connect_timeout=60")).toBe("postgresql://u:p@h/db?connect_timeout=60&pool_timeout=30");
+    expect(tunedUrl("")).toBe("");
+  });
   it("the social-share card's logo is a flex box (the image renderer rejects multi-child boxes without it)", () => expect(read("src/lib/og.tsx")).toMatch(/display: "flex", alignItems: "center"/));
 });

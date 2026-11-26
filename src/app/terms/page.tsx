@@ -1,32 +1,127 @@
-import { pageMeta } from "@/lib/seo"; import Legal, { H } from "@/components/Legal"; import { LEGAL } from "@/lib/legal"; import { PLANS } from "@/lib/plans";
-export const metadata = pageMeta({ title: "Terms & conditions", description: "The terms for using Superpi: your account, acceptable use, plans and payments, data ownership and how we handle problems.", path: "/terms" });
-const ul = "list-disc space-y-1 pl-5";
+import { pageMeta } from "@/lib/seo"; import Legal, { H, UL, OL, DT, Mail } from "@/components/Legal"; import { LEGAL } from "@/lib/legal";
+export const metadata = pageMeta({ title: "Terms & conditions", description: "The terms for using Superpi, operated by Direct2Hub Private Limited: accounts, the Free Forever plan, your data, the Business AI Assistant, acceptable use and liability.", path: "/terms" });
+const TOC: [string, string][] = [["acceptance", "1. Acceptance"], ["services", "2. Our services"], ["account", "3. Account registration"], ["free", "4. Free Forever plan"], ["paid", "5. Future paid services"], ["data", "6. User data"], ["ai", "7. Business AI Assistant"], ["use", "8. Acceptable use"], ["ip", "9. Intellectual property"], ["availability", "10. Availability"], ["backup", "11. Accuracy & backups"], ["third", "12. Third-party services"], ["privacy", "13. Privacy"], ["termination", "14. Suspension"], ["warranty", "15. Warranties"], ["liability", "16. Liability"], ["changes", "17. Changes"], ["law", "18. Governing law"], ["contact", "19. Contact"]];
 export default function Terms() {
-  return <Legal title="Terms & conditions" path="/terms">
-    <p>By creating an account or using Superpi you agree to these terms with {LEGAL.company}. If you use it for a business, you confirm you may bind that business. Please also read our Privacy policy.</p>
-    <H>1. Your account</H>
-    <ul className={ul}><li>You must verify your email address and keep your sign-in details secret. You are responsible for activity under your account and for the people you invite.</li><li>Organization owners decide each team member's role. Give people only the access they need.</li><li>Tell us promptly if you think your account has been misused.</li></ul>
-    <H>2. Your data</H>
-    <p>You own the business data you enter. You give us permission to store and process it only to provide and secure the service. You are responsible for its accuracy and for having the right to enter it, including any customer or supplier details. Sample data is labelled "Demo" and can be removed at any time.</p>
-    <H>3. Acceptable use</H>
-    <ul className={ul}><li>Do not try to access another organization's data, bypass limits or security, or probe the service for weaknesses without our written permission.</li><li>Do not upload malware, overload the service, or use it for unlawful activity.</li><li>Do not share an account in a way that defeats plan limits.</li></ul>
-    <H>4. Plans and limits</H>
-    <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead><tr className="border-b border-ink/20"><th className="py-2 pr-3">Plan</th><th className="pr-3">Active products</th><th>Team members (incl. pending invitations)</th></tr></thead><tbody>
-      {Object.values(PLANS).map((p) => <tr key={p.label} className="border-b border-ink/10"><td className="py-2 pr-3 font-medium">{p.label}</td><td className="pr-3">{p.products.toLocaleString("en-IN")}</td><td>{p.members}</td></tr>)}</tbody></table></div>
-    <p>Paid plans are charged in Indian rupees, with GST added. A one-time payment covers one period (a month or a year) and does not renew. If you choose auto-renewal, your payment method is charged again at the end of every period at the then-current price shown at checkout, <b>until you cancel</b>. You can cancel at any time online under My plan, then Cancel auto-renewal; the plan stays active until the end of the period you already paid for. We email a tax invoice after every payment. Refunds: contact us within 7 days of a charge and we will review it.</p>
-    <H>5. Figures and records</H>
-    <p>Superpi helps you track stock, orders, purchases, returns and margins from the data you enter. Reports, valuations and profit figures depend on that data and are not accounting, tax (including GST) or legal advice. You are responsible for checking them before relying on them.</p>
-    <H>6. Availability and changes</H>
-    <p>We work to keep the service available but do not promise it will be uninterrupted or error-free. We may improve, change or remove features, and will try to give notice of changes that significantly affect you.</p>
-    <H>7. Suspension and ending</H>
-    <p>We may suspend an organization that breaks these terms or puts the service or other customers at risk, and we record the reason. You can stop using the service at any time and ask us to delete your data.</p>
-    <H>8. Liability</H>
-    <p>The service is provided "as is". [A lawyer should complete the warranty disclaimer and limitation of liability clauses for your situation.] Nothing here limits liability that cannot be limited by law.</p>
-    <H>9. Governing law</H>
-    <p>These terms are governed by the laws of India. [Name the city or state whose courts will handle disputes.]</p>
-    <H>10. Copyright and takedown</H>
-    <p>Everything you add to Superpi stays private to your organization; we do not publish it. If you believe something stored through our service infringes your copyright, email {LEGAL.email} with the work, where it is, and your contact details. We will remove or disable access to it promptly and end the accounts of repeat infringers.</p>
-    <H>11. Contact</H>
-    <p>Questions about these terms: {LEGAL.email}.</p>
+  return <Legal title="Terms & conditions" path="/terms" toc={TOC}>
+    <H id="acceptance">1. Acceptance of Terms</H>
+    <p>Welcome to Superpi.</p>
+    <p>These Terms &amp; Conditions (&quot;Terms&quot;) govern your access to and use of Superpi, including its website, inventory management software, Business AI Assistant, and related services.</p>
+    <p>Superpi is founded and operated by {LEGAL.company}, an Indian company registered under the Companies Act, 2013.</p>
+    <p>By creating an account, accepting these Terms, or using the Services, you agree to comply with these Terms and acknowledge our Privacy Policy.</p>
+    <p>If you do not agree, you must not use the Services.</p>
+    <p>If you use Superpi on behalf of a business or organization, you confirm that you have the authority to accept these Terms on its behalf.</p>
+
+    <H id="services">2. About Our Services</H>
+    <p>Superpi is a cloud-based inventory management platform designed to assist users with managing products, stock records, and related business information.</p>
+    <p>Our current services include:</p>
+    <DT t="Inventory Management">Tools to organize products, maintain inventory information, and manage stock-related records.</DT>
+    <DT t="Business AI Assistant">An AI-powered feature that uses relevant information available within your account to help answer questions and explain business data.</DT>
+    <p>The functionality available to users may depend on their plan, account configuration, and the current version of the software.</p>
+    <p>We may update, improve, or modify features to maintain or develop the Services, subject to applicable law and contractual commitments.</p>
+
+    <H id="account">3. Account Registration</H>
+    <p>Users may create an account using:</p>
+    <UL items={["Email and password", "Google sign-in"]} />
+    <p>You agree to provide accurate information during registration and maintain the security of your account.</p>
+    <p>You must not impersonate another person, create accounts for fraudulent purposes, or access another user&apos;s account without authorization.</p>
+    <p>You are responsible for activity carried out through your account to the extent permitted by applicable law.</p>
+    <p>Please report suspected unauthorized access to <Mail to={LEGAL.support} />.</p>
+
+    <H id="free">4. Free Forever Plan</H>
+    <p>Superpi offers a Free Forever plan supporting up to 100 products.</p>
+    <p>The plan is available without a recurring subscription fee for its included features, subject to the published plan specifications and applicable usage restrictions.</p>
+    <p>The Free Forever plan may include reasonable technical or fair-use limitations necessary to maintain platform security and availability, provided such restrictions are appropriately disclosed.</p>
+    <p>&quot;Free Forever&quot; does not guarantee that every feature, technical specification, or usage limit will remain unchanged indefinitely.</p>
+    <p>We may introduce improvements or make changes to the plan in accordance with applicable law and commitments made to existing users.</p>
+    <p>Superpi currently does not offer active paid subscriptions.</p>
+
+    <H id="paid">5. Future Paid Services</H>
+    <p>Additional premium features or subscription plans may be introduced in the future.</p>
+    <p>If paid services become available, the applicable pricing, billing frequency, taxes, renewal conditions, cancellation procedures, and refund terms will be disclosed before purchase.</p>
+    <p>Users of the Free Forever plan will not automatically be charged or enrolled in paid subscriptions without an applicable authorization.</p>
+    <p>Future paid services may be governed by additional terms communicated at the time of purchase.</p>
+
+    <H id="data">6. User Data and Inventory Records</H>
+    <p>Users may enter, upload, edit, or manage inventory and related business information within Superpi.</p>
+    <p>Users retain their rights in the data they provide.</p>
+    <p>By submitting data, users authorize Superpi to store, process, display, and otherwise use it as reasonably necessary to provide the requested Services and for other purposes permitted under our Privacy Policy and applicable law.</p>
+    <p>Users are responsible for:</p>
+    <UL items={["Providing accurate inventory information.", "Ensuring they are authorized to use submitted information.", "Maintaining appropriate inventory records.", "Reviewing stock changes and business reports.", "Maintaining independent backups of important information.", "Complying with applicable laws governing their business."]} />
+    <p>Superpi does not independently verify every product record, stock quantity, price, or business entry.</p>
+
+    <H id="ai">7. Business AI Assistant</H>
+    <p>Superpi&apos;s Business AI Assistant uses relevant inventory and dashboard information available within a user&apos;s account to provide AI-generated assistance.</p>
+    <p>The feature operates with the support of an external AI technology provider.</p>
+    <p>Users acknowledge that:</p>
+    <OL items={["AI-generated answers may contain errors or inaccuracies.", "Responses may depend on the completeness and accuracy of available business data.", "AI-generated information should be independently reviewed before important business decisions.", "The assistant does not guarantee revenue growth, profitability, or specific business results.", "AI responses should not replace professional legal, accounting, tax, or financial advice."]} />
+    <p>Users must not rely exclusively on AI-generated outputs for critical decisions.</p>
+    <p>The Business AI Assistant is provided as a business-support tool and not as a substitute for independent professional judgment.</p>
+
+    <H id="use">8. Acceptable Use</H>
+    <p>Users agree not to:</p>
+    <UL items={["Use Superpi for unlawful or fraudulent purposes.", "Attempt to gain unauthorized access to accounts or systems.", "Upload viruses, malware, or other harmful software.", "Circumvent security or authentication measures.", "Disrupt or overload the Services.", "Upload information that infringes third-party rights.", "Attempt to reverse-engineer protected software except where permitted by law.", "Misuse the Business AI Assistant to violate applicable law.", "Misrepresent their identity or business authorization."]} />
+    <p>We may take appropriate measures to prevent or investigate misuse, including restricting or suspending access where reasonably necessary.</p>
+
+    <H id="ip">9. Intellectual Property</H>
+    <p>The Superpi brand, name, logo, website design, application interface, software, and associated proprietary materials are owned by or licensed to {LEGAL.company}.</p>
+    <p>Users receive a limited, non-exclusive, non-transferable right to access and use the Services in accordance with these Terms.</p>
+    <p>Users may not copy, redistribute, commercially exploit, or reproduce protected platform materials without appropriate permission.</p>
+    <p>Nothing in these Terms transfers ownership of a user&apos;s underlying inventory or business records to {LEGAL.company}.</p>
+
+    <H id="availability">10. Platform Availability</H>
+    <p>We aim to provide a reliable and accessible software platform.</p>
+    <p>However, temporary interruptions may occur due to maintenance, updates, technical failures, network issues, security events, or circumstances outside our reasonable control.</p>
+    <p>We do not guarantee uninterrupted or error-free availability.</p>
+    <p>Where reasonably practicable, we may provide notices about significant planned maintenance or service changes.</p>
+
+    <H id="backup">11. Data Accuracy and Backup Responsibility</H>
+    <p>The accuracy of inventory information depends partly on the information provided and maintained by users.</p>
+    <p>Users should regularly verify inventory records and preserve independent copies of important business data.</p>
+    <p>Superpi does not guarantee that its use will eliminate all inventory discrepancies, prevent every operational error, or protect against every possible data loss event.</p>
+
+    <H id="third">12. Third-Party Services</H>
+    <p>Superpi may rely on external providers for infrastructure, authentication, artificial intelligence, and other technical functionality.</p>
+    <p>These third-party systems may be subject to their own terms, policies, and availability limitations.</p>
+    <p>We are not responsible for independently operated third-party services except to the extent required by applicable law or our contractual obligations.</p>
+
+    <H id="privacy">13. Privacy</H>
+    <p>Our handling of personal information is described in the Superpi <a href="/privacy" className="text-brand underline">Privacy Policy</a> available through <a href={LEGAL.website} className="text-brand underline">{LEGAL.website}</a>.</p>
+    <p>We process user information in accordance with applicable privacy requirements and the purposes disclosed in that policy.</p>
+
+    <H id="termination">14. Suspension and Termination</H>
+    <p>We may suspend, restrict, or terminate access where reasonably necessary due to:</p>
+    <UL items={["Material violation of these Terms", "Fraudulent or unlawful activity", "Threats to platform security", "Unauthorized account access", "Abuse of platform resources", "Applicable legal requirements"]} />
+    <p>Where appropriate and legally permitted, we may provide notice or an opportunity to resolve the issue.</p>
+    <p>Users may discontinue using Superpi and request account deletion by contacting <Mail to={LEGAL.support} />.</p>
+    <p>Account termination may result in loss of access to the Services and associated information, subject to applicable data retention obligations.</p>
+
+    <H id="warranty">15. Disclaimer of Warranties</H>
+    <p>Superpi is provided on an &quot;as available&quot; basis, to the maximum extent permitted by applicable law.</p>
+    <p>We do not guarantee that:</p>
+    <UL items={["The platform will always be uninterrupted or error-free.", "All inventory records will be accurate.", "AI-generated outputs will always be complete or correct.", "The Services will meet every user's individual requirements.", "Using Superpi will generate specific commercial or financial results."]} />
+    <p>Nothing in these Terms excludes statutory warranties or rights that cannot legally be excluded.</p>
+
+    <H id="liability">16. Limitation of Liability</H>
+    <p>To the maximum extent permitted by applicable law, {LEGAL.company} shall not be liable for indirect, incidental, special, or consequential losses arising from the use of Superpi, including lost business opportunities, lost profits, or operational disruption, except where such liability cannot lawfully be excluded.</p>
+    <p>This limitation does not exclude liability arising from fraud, wilful misconduct, or other matters for which liability cannot legally be restricted.</p>
+    <p>Users remain responsible for independently reviewing business-critical decisions and information.</p>
+
+    <H id="changes">17. Changes to the Services and Terms</H>
+    <p>We may update these Terms and modify our Services to reflect changes in technology, features, operations, security requirements, or applicable laws.</p>
+    <p>Updated Terms will be published on our website with the relevant effective date.</p>
+    <p>Where required by law, we will provide additional notice or obtain consent before material changes take effect.</p>
+
+    <H id="law">18. Governing Law and Dispute Resolution</H>
+    <p>These Terms are governed by the laws of India.</p>
+    <p>Users are encouraged to contact our support team first regarding any dispute or concern.</p>
+    <p>Subject to mandatory legal rights and applicable law, disputes will be subject to the jurisdiction of competent courts in Karnataka, India.</p>
+    <p>Nothing in these Terms restricts rights to approach an appropriate statutory or consumer dispute redressal authority.</p>
+
+    <H id="contact">19. Contact Information</H>
+    <p>For questions about these Terms, contact:</p>
+    <div className="rounded-2xl border border-edge/60 bg-lavender/30 p-5 dark:bg-white/5">
+      <p><b className="text-ink">Company:</b> {LEGAL.company}</p><p><b className="text-ink">Product:</b> {LEGAL.product}</p><p><b className="text-ink">CIN:</b> {LEGAL.cin}</p>
+      <p><b className="text-ink">General Email:</b> <Mail to={LEGAL.email} /></p><p><b className="text-ink">Support Email:</b> <Mail to={LEGAL.support} /></p>
+      <p><b className="text-ink">Registered Office:</b> {LEGAL.address}.</p><p><b className="text-ink">Website:</b> <a href={LEGAL.website} className="text-brand underline">{LEGAL.website}</a></p></div>
   </Legal>;
 }

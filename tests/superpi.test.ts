@@ -79,6 +79,42 @@ describe("Google sign-in that lands on the home page", () => {
   it("the assistant no longer shows which AI provider answers", () => { expect(read("src/components/AssistantChat.tsx")).not.toMatch(/AI: \{via\}/); });
 });
 
+describe("team roles only open their own sections", () => {
+  it("owner and platform operators open everything", async () => {
+    const { canOpen } = await import("../src/lib/access");
+    for (const p of ["/invoices/abc", "/bills", "/warehouses", "/research", "/admin"]) { expect(canOpen("OWNER", p), p).toBe(true); expect(canOpen("ANALYST", p, true), p).toBe(true); }
+  });
+  it("each staff role gets its sections and is refused the rest", async () => {
+    const { canOpen } = await import("../src/lib/access");
+    const yes: [string, string][] = [["ORDER_STAFF", "/orders/123"], ["ORDER_STAFF", "/customers"], ["ACCOUNTANT", "/invoices/x"], ["ACCOUNTANT", "/bills"], ["INVENTORY_MANAGER", "/purchases"], ["ANALYST", "/reports"]];
+    const no: [string, string][] = [["ORDER_STAFF", "/invoices"], ["ORDER_STAFF", "/bills"], ["ORDER_STAFF", "/warehouses"], ["ACCOUNTANT", "/orders"], ["ACCOUNTANT", "/counts"], ["ANALYST", "/orders"], ["ANALYST", "/customers"], ["INVENTORY_MANAGER", "/invoices"], ["INVENTORY_MANAGER", "/bills"], ["ORDER_STAFF", "/research"], ["ORDER_STAFF", "/admin"]];
+    for (const [r, p] of yes) expect(canOpen(r, p), `${r} ${p}`).toBe(true);
+    for (const [r, p] of no) expect(canOpen(r, p), `${r} ${p}`).toBe(false);
+  });
+  it("everyone keeps their dashboard, alerts, own settings and the assistant; an unknown role gets only those", async () => {
+    const { canOpen } = await import("../src/lib/access");
+    for (const r of ["ORDER_STAFF", "ACCOUNTANT", "ANALYST", "INVENTORY_MANAGER", "SOMETHING_NEW"]) for (const p of ["/dashboard", "/notifications", "/settings", "/security", "/assistant"]) expect(canOpen(r, p), `${r} ${p}`).toBe(true);
+    expect(canOpen("SOMETHING_NEW", "/products")).toBe(false);
+  });
+  it("money on the dashboard follows the assistant's rules", async () => {
+    const { seesSales, seesCosts } = await import("../src/lib/access");
+    expect(seesSales("ACCOUNTANT")).toBe(true); expect(seesSales("ORDER_STAFF")).toBe(false); expect(seesSales("INVENTORY_MANAGER")).toBe(false);
+    expect(seesCosts("ORDER_STAFF")).toBe(false); expect(seesCosts("INVENTORY_MANAGER")).toBe(true);
+  });
+  it("the server enforces it: ctx() checks the page path set by middleware (never by the client), and menus use the same table", () => {
+    expect(read("src/lib/ctx.ts")).toMatch(/canOpen\(m\.role, path, op\)/); const mw = read("src/middleware.ts");
+    expect(mw).toMatch(/"x-d2h-path"\]\.forEach\(\(k\) => h\.delete\(k\)\)/); expect(mw).toMatch(/h\.set\("x-d2h-path", req\.nextUrl\.pathname\)/);
+    expect(read("src/components/AppChrome.tsx")).toMatch(/canOpen\(role, h, admin\)/);
+  });
+});
+
+describe("invitations and recovery", () => {
+  it("invite links never read 'undefined/…' when NEXT_PUBLIC_SITE_URL is missing", () => { const a = read("src/app/actions.ts"); expect(a).toMatch(/const link = `\$\{await SITE\(\)\}\/invite\//); expect(a).not.toMatch(/\$\{process\.env\.NEXT_PUBLIC_SITE_URL\}\/invite/); });
+  it("cancelling an invite, removing a member or changing a role says so", () => { const a = read("src/app/actions.ts"); for (const m of ["Invitation cancelled", "Team member removed", "Role changed to"]) expect(a, m).toContain(m); });
+  it("after a new deploy, a stale tab reloads itself instead of showing an error", () => { const e = read("src/app/error.tsx"); expect(e).toMatch(/ChunkLoadError/); expect(e).toMatch(/location\.replace/); expect(e).not.toMatch(/localStorage|sessionStorage/); });
+  it("serves a real favicon.ico (16/32/48 px)", () => { const b = readFileSync("src/app/favicon.ico"); expect(b.readUInt16LE(2)).toBe(1); expect(b.readUInt16LE(4)).toBe(3); expect([b[6], b[22], b[38]]).toEqual([16, 32, 48]); });
+});
+
 describe("sign-out leaves nothing in the browser", () => {
   it("ends the session and sends Clear-Site-Data for storage and cache", async () => {
     const { POST } = await import("../src/app/auth/signout/route");
@@ -126,7 +162,13 @@ describe("visitor chat on the home page", () => {
 });
 
 describe("Superpi brand", () => {
-  it("no page or message says Direct2Hub any more", () => { expect(walk("src").filter((f) => /Direct2Hub|Direct<span/.test(read(f)))).toEqual([]); });
+  it("the product is Superpi everywhere; Direct2Hub appears only as the legal company name", () => { expect(walk("src").filter((f) => /Direct2Hub(?! Private Limited)|Direct<span/.test(read(f)))).toEqual([]); });
+  it("About, Contact, Privacy and Terms carry the real company details", async () => {
+    const { LEGAL, legalReady } = await import("../src/lib/legal");
+    expect(LEGAL).toMatchObject({ company: "Direct2Hub Private Limited", cin: "U46901KA2026PTC231623", email: "contact@superpi.space", support: "support@superpi.space" }); expect(legalReady).toBe(true);
+    for (const p of ["src/app/about/page.tsx", "src/app/contact/page.tsx", "src/app/privacy/page.tsx", "src/app/terms/page.tsx"]) expect(existsSync(p), p).toBe(true);
+    expect(read("src/app/contact/page.tsx")).toMatch(/name="subject"/); expect(read("src/app/sitemap.ts")).toMatch(/"\/about"/);
+  });
   it("brand assets exist", () => { for (const p of ["public/brand/superpi-logo.png", "public/brand/superpi-logo-light.png", "public/brand/superpi-mark.png", "public/brand/pwa-512.png", "src/app/icon.png", "src/fonts/noto-sans-latin-wght-normal.woff2"]) expect(existsSync(p), p).toBe(true); });
   it("uses the brand book colours", () => { const t = read("tailwind.config.ts"); for (const c of ["#14162F", "#4335CF", "#E8E5FF", "#F8F8FD"]) expect(t.includes(c), c).toBe(true); });
   it("the home page draws its screens in HTML: no old screenshots, no pricing button", () => { const h = read("src/app/page.tsx"); expect(h).not.toMatch(/\/images\//); expect(h).not.toMatch(/See pricing/); expect(existsSync("public/images/reports.webp")).toBe(false); });
