@@ -24,7 +24,7 @@ const Kbd = ({ k }: { k: string }) => <span className="ml-2 hidden gap-0.5 opaci
 const badge = (n: number, cls = "") => n > 0 ? <span className={`rounded-full bg-turmeric px-1.5 text-xs font-semibold text-navy ${cls}`}>{n}</span> : null;
 
 /** Persistent app frame. It lives in the shared layout, so clicking a link swaps only the page area; the active item updates instantly from the URL. */
-export default function AppChrome({ admin, unread, ai, children }: { admin: boolean; unread: number; ai?: { ready: boolean; via: string }; children: React.ReactNode }) {
+export default function AppChrome({ admin, unread, ai, children }: { admin: boolean; unread: number; ai?: { ready: boolean }; children: React.ReactNode }) {
   const path = usePathname() ?? "";
   const active = path.startsWith("/admin") ? "Admin" : nav.find((n) => path === href(n) || path.startsWith(href(n) + "/")) ?? "";
   const inMore = (active !== "" && !tabbed.has(active)) || active === "Admin", [moreOpen, setMore] = useState(false), [quickOpen, setQuick] = useState(false), closeAll = () => { setMore(false); setQuick(false); }, go = () => { leaveLayer(); closeAll(); }; // go: a link inside a sheet was chosen, so the sheet closes without undoing the navigation
@@ -43,7 +43,7 @@ export default function AppChrome({ admin, unread, ai, children }: { admin: bool
           {admin && <Link href="/admin" className={`mt-4 whitespace-nowrap rounded-xl border border-lavender/40 px-3 py-2 text-sm text-lavender transition hover:bg-white/[.08] ${active === "Admin" ? "bg-white/10" : ""}`}>Platform admin</Link>}
         </nav>
       </aside>
-      <ChatWidget mode="app" ready={!!ai?.ready} via={ai?.via} />
+      <ChatWidget mode="app" ready={!!ai?.ready} />
       <main className="relative min-w-0 print:p-0 p-4 pb-40 md:p-2 md:pb-2"><div className="absolute right-2 top-2 z-20 hidden items-center gap-2 md:flex print:hidden"><ThemeToggle /></div>{children}</main>
 
       <button type="button" aria-label="Quick actions" aria-haspopup="dialog" onClick={() => { setMore(false); setQuick(true); }} className="fixed right-4 z-30 grid h-14 w-14 place-items-center rounded-full bg-gradient-to-b from-brandLight to-brand text-3xl leading-none text-white shadow-[0_8px_24px_rgba(67,53,207,.5)] transition active:scale-95 md:hidden print:hidden" style={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom))" }}><span aria-hidden>+</span></button>

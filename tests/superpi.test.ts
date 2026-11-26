@@ -67,6 +67,18 @@ describe("Google sign-in and first-time setup", () => {
   });
 });
 
+describe("Google sign-in that lands on the home page", () => {
+  it("forwards /?code=… to /auth/callback so the sign-in finishes (Supabase Site URL fallback)", async () => {
+    const { NextRequest } = await import("next/server"), { middleware } = await import("../src/middleware");
+    const r = await middleware(new NextRequest("https://www.superpi.tech/?code=d47b6b80-d2f7"));
+    expect(r.status).toBe(307); const to = new URL(r.headers.get("location")!);
+    expect(to.origin + to.pathname).toBe("https://www.superpi.tech/auth/callback"); expect(to.searchParams.get("code")).toBe("d47b6b80-d2f7"); expect(to.searchParams.get("next")).toBe("/dashboard");
+    const c = await middleware(new NextRequest("https://www.superpi.tech/?error=access_denied&error_description=cancelled"));
+    expect(new URL(c.headers.get("location")!).searchParams.get("error")).toBe("access_denied");
+  });
+  it("the assistant no longer shows which AI provider answers", () => { expect(read("src/components/AssistantChat.tsx")).not.toMatch(/AI: \{via\}/); });
+});
+
 describe("sign-out leaves nothing in the browser", () => {
   it("ends the session and sends Clear-Site-Data for storage and cache", async () => {
     const { POST } = await import("../src/app/auth/signout/route");

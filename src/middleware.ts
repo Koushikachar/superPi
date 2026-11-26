@@ -5,6 +5,15 @@ const opts = (o?: any) => ({ ...o, httpOnly: true, secure: process.env.NODE_ENV 
 /** One Supabase check per request: refreshes the session cookie, and hands the verified identity to the page in headers (so pages don't call Supabase again).
  *  Any x-d2h-* header sent by a client is deleted first, so only this middleware can set them. */
 export async function middleware(req: NextRequest) {
+  // Supabase sends people to the Site URL ("/?code=…") instead of /auth/callback when the callback address is missing from its
+  // Redirect URLs allow-list. Forward the code (or the provider's error) to the callback so the sign-in still finishes.
+  const sp = req.nextUrl.searchParams;
+  if (req.nextUrl.pathname === "/" && (sp.has("code") || sp.has("error"))) {
+    const to = req.nextUrl.clone(); to.pathname = "/auth/callback"; to.search = "";
+    for (const k of ["code", "error", "error_code", "error_description"]) { const v = sp.get(k); if (v) to.searchParams.set(k, v); }
+    to.searchParams.set("next", "/dashboard");
+    return NextResponse.redirect(to);
+  }
   const toSet: CookieToSet[] = [];
   const sb = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { cookies: {
     getAll: () => req.cookies.getAll(),
