@@ -7,7 +7,7 @@ const SIZE = 56, EDGE = 8; // button size, the gap kept from the screen edge
 const Bubble = () => <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.5A8 8 0 1 1 21 12z" /><path d="M9 11h.01M12 11h.01M15 11h.01" /></svg>;
 /** The chat bubble in the bottom-right corner. "public": on the home and pricing pages it answers visitors' questions about Superpi (no account, no private data). "app": after sign-in it is the business assistant.
  *  It only appears when the AI is switched on, and the conversation is kept in memory only. */
-export default function ChatWidget({ mode, ready = true, via }: { mode: "public" | "app"; ready?: boolean; via?: string }) {
+export default function ChatWidget({ mode, ready = true }: { mode: "public" | "app"; ready?: boolean }) {
   const path = usePathname() ?? "", app = mode === "app", [open, setOpen] = useState(false), [avail, setAvail] = useState(app), close = useCallback(() => setOpen(false), []);
   useEffect(() => { if (app) return; let live = true; fetch("/api/ai/public").then((r) => r.json()).then((j) => live && setAvail(!!j.ready)).catch(() => {}); return () => { live = false; }; }, [app]);
   useBackClose(open, close);
@@ -32,7 +32,7 @@ export default function ChatWidget({ mode, ready = true, via }: { mode: "public"
       <div className="flex items-center justify-between bg-gradient-to-r from-brand to-brandDark px-4 py-3 text-white"><div><p className="font-semibold">{title}</p><p className="text-xs text-white/75">{app ? "Answers from your own data" : `Ask about Superpi · ${VISITOR_CHAT_LIMIT} free questions a day`}</p></div>
         <button type="button" onClick={close} aria-label="Close chat" className="grid h-10 w-10 place-items-center rounded-xl text-2xl leading-none hover:bg-white/15">×</button></div>
       <div className="min-h-0 flex-1 bg-surface/40">{app
-        ? <AssistantChat compact ready={ready} via={via} heading="Ask about your business" intro="Stock, orders, customers and sales. I can also write product descriptions." />
+        ? <AssistantChat compact ready={ready} heading="Ask about your business" intro="Stock, orders, customers and sales. I can also write product descriptions." />
         : <AssistantChat compact ready maxLen={400} limit={VISITOR_CHAT_LIMIT} endpoint="/api/ai/public" tries={PUBLIC_TRY} heading="Hi, I'm the Superpi Business Assistant" intro={`Ask me about features or getting started. You get ${VISITOR_CHAT_LIMIT} free questions a day; sign in to ask about your own stock and orders.`} placeholder="Type your question…" />}</div></div>}
   </>;
 }

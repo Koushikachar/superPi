@@ -1,4 +1,4 @@
 import { Shell } from "@/components/Shell"; import AssistantChat from "@/components/AssistantChat";
-import { ctx } from "@/lib/ctx"; import { aiReady, aiLabel } from "@/lib/ai";
+import { ctx } from "@/lib/ctx"; import { aiReady } from "@/lib/ai";
 export const dynamic = "force-dynamic";
-export default async function Assistant() { const c = await ctx(); return <Shell title="Business assistant" active="Assistant" admin={c.op}><AssistantChat ready={aiReady()} via={aiLabel("chat")} /></Shell>; }
+export default async function Assistant() { const c = await ctx(); return <Shell title="Business assistant" active="Assistant" admin={c.op}><AssistantChat ready={aiReady()} /></Shell>; }
